@@ -43,6 +43,9 @@ Remax 的编译时与运行时流程图如下：
 4. 处理 Rollup Config
 ┗━━━━━━━━━━━━━━━━━━━━┛
   ┣━━━━━━━━━━━━━━━━━━━┓
+  4.0 获取 entry 文件
+  ┗━━━━━━━━━━━━━━━━━━━┛
+  ┏━━━━━━━━━━━━━━━━━━━┓
   4.1 处理 Rollup 插件
   ┗━━━━━━━━━━━━━━━━━━━┛
     ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -325,7 +328,7 @@ export default function plugin() {
 
 ## 废弃 <引入 Adapter 代码 编译时 3.>
 
-## 扩展 RollupConfig 4.
+## 扩展 RollupConfig 编译时 4.
 
 开发者
 
@@ -349,7 +352,25 @@ export default function plugin() {
 
 *通过扩展 RollupConfig，开发者可以自定义 rollup 行为*
 
-## 扩展 Rollup Plugin.
+## 自定义 Entry 文件. 编译时 4.0
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    compile: {
+      /**
+       * 自定义 entry 文件
+       */
+      getEntreis: () => any,
+    }
+  }
+};
+```
+
+## 扩展 Rollup Plugin. 编译时 4.1
 
 开发者
 
