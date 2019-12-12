@@ -9,7 +9,7 @@
 - 支持多平台
 - 扩展语法支持能力
 - 切换渲染引擎，如 rax
-- 自定义打包行为
+- 自定义打包行为 （切换 webpack？）
 - 自定义 CLI 命令
 - 扩展平台功能
 - ...
@@ -312,7 +312,157 @@ export default function plugin() {
 // 同时 this.context.remaxOptions 可以访问到最终的 remax options 参数
 ```
 
-*结合上面两个能力，开发者可以自动把用户选择的平台对应的 plugin 引入到 remax.config.js 中，这样用户可以无感知地使用 remax-plugin-${plaform}，无需手动引入*
+*结合 CLI 和 RemaxOptions 的扩展能力，开发者可以自动把用户选择的平台对应的 plugin 引入到 remax.config.js 中，这样用户可以无感知地使用 remax-plugin-${plaform}，无需手动引入*
+
+## 废弃 <引入 Adapter 代码 编译时 3.>
+
+## 扩展 RollupConfig 4.
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    /**
+     * 完全接管 rollupConfig 做调整
+     * remax 现有的 rollupConfig
+     * @param  rollupConfig
+     */
+    extendsRollupConfig: (rollupConfig) => rollupConfig,
+  }
+};
+
+// 同时 this.context.rollupConfig 可以访问到最终的 rollupConfig
+```
+
+*通过扩展 RollupConfig，开发者可以自定义 rollup 行为*
+
+## 扩展 Rollup Plugin.
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    /**
+     * 帮助开发者扩展已有 rollup 插件的参数
+     */
+    extendsRollupPlugins: () => ([
+      {
+        name: 'plugin-name',
+        options: {
+          ...
+        } || (originalOptions) => ({ ... })
+      }
+    ]),
+  }
+};
+
+// 同时 this.context.rollupConfig 可以访问到最终的 rollupConfig
+```
+
+Remax
+
+```ts
+// rollupConfig.ts
+plugins.map(plug => {
+  const customOptions = remaxPlugin.extendsRollupPlugins.findByName(plug.name).options;
+  return plug(customOptions || originalOptions);
+}) 
+```
+
+*通过扩展 RollupConfig，开发者可以自定义 rollup 行为*
+
+
+## 废弃 <babel-plugin-stub 编译时 4.1.7>
+
+## 自定义处理 page 页面行为 编译时 4.1.8
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    /**
+     * 自定义处理 page 组件的 babel 插件
+     */
+    customBabelPluginPage: () => plugin,
+  }
+};
+
+```
+
+## 自定义处理 app 页面行为 编译时 4.1.9
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    /**
+     * 自定义处理 app 组件的 babel 插件
+     */
+    customBabelPluginApp: () => plugin,
+  }
+};
+
+```
+
+## 自定义收集 native 组件行为 编译时 [4.1.8, 4.1.9, 4.1.10]
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    /**
+     * 自定义处理 原生组件的 babel 插件
+     */
+    customBabelPluginNativeComponent: () => plugin,
+  }
+};
+
+```
+
+## 自定义收集JSX标签的行为 编译时 4.1.10
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    /**
+     * 自定义收集 jsx 标签的 babel 插件
+     */
+    customBabelPluginJSXTag: () => plugin,
+  }
+};
+
+```
+
+## 配置原生文件扩展名 编译时 4.1.14
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    extensions: {
+      template: 'axml',
+      style: 'axss',
+      jsHelper: 'sjs',
+    }
+  }
+};
+
+```
 
 # 缺点
 
