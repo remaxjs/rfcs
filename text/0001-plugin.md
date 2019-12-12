@@ -508,6 +508,116 @@ export default function plugin() {
 
 ```
 
+## 注册 App 生命周期 运行时 1.1
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    runtime: {
+      /**
+       * 注册生命周期
+       */
+      registerAppLifeCycle: (options) => any;
+    }
+  }
+}
+```
+
+## 注册 App 生命周期 运行时 1.1.
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    runtime: {
+      /**
+       * 注册 App 生命周期
+       */
+      registerAppLifeCycle: (options) => any;
+    }
+  }
+}
+```
+
+## 注册 Page 生命周期 运行时 2.
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    runtime: {
+      /**
+       * 注册 Page 生命周期
+       */
+      registerPageLifeCycle: (options) => any;
+    }
+  }
+}
+```
+
+## 扩展 VNode 运行时 3.
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    runtime: {
+      /**
+       * 扩展虚拟 dom 类
+       */
+      extendsVNode: (VNode) => VNode;
+    }
+  }
+}
+```
+
+## 处理 props 运行时 3.1.2
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    runtime: {
+      /**
+       * hostConfig 处理 props before hook
+       */
+      beforeHostConfigProcessingProps: (...propsOptions) => props,
+      /**
+       * hostConfig 处理 props after hook
+       */
+      afterHostConfigProcessingProps: (...propsOptions) => props;
+    }
+  }
+}
+```
+
+remax
+
+```ts
+// hostConfig.ts
+...
+
+processProps(newProps, ...options) {
+  const props = beforeHostConfigProcessingProps(newProps, ...options);
+  ...
+  return afterHostConfigProcessingProps(props, ...options);
+}
+
+...
+
+```
+
 # 缺点
 
 代码冗余会有一定程度上升，维护多平台的成本上升。
