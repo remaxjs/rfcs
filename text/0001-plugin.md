@@ -264,7 +264,12 @@ interface RemaxPluginContext {
 ```ts
 // 定义实现 plugin 要实现的 options, hooks
 interface RemaxPluginConfig {
-  ...
+  runtime: {
+    ...
+  },
+  compile: {
+    ...
+  }
 }
 ```
 
@@ -276,11 +281,13 @@ interface RemaxPluginConfig {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 将 yargs 对象传入，返回扩展后的 yargs 对象
-     * @param  yargs
-     */
-    extendsCLI: (cli) => cli,
+    compile: {
+      /**
+       * 将 yargs 对象传入，返回扩展后的 yargs 对象
+       * @param  yargs
+       */
+      extendsCLI: (cli) => cli,
+    }
   }
 };
 
@@ -295,17 +302,19 @@ export default function plugin() {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 扩展 remaxOptionsSchema 定义
-     */
-    extendsRemaxOptionsSchema: (remaxOptionsSchema) => remaxOptionsSchema,
+    compile: {
+      /**
+       * 扩展 remaxOptionsSchema 定义
+       */
+      extendsRemaxOptionsSchema: (remaxOptionsSchema) => remaxOptionsSchema,
 
-    /**
-     * 自定义 remaxOptions
-     * @param defaultRemaxOptions: remax options 默认值
-     * @param defaultRemaxOptions: remax options 默认值
-     */
-    mapRemaxOptions: (defaultRemaxOptions, inputRemaxOptions) => remaxOptions,
+      /**
+       * 自定义 remaxOptions
+       * @param defaultRemaxOptions: remax options 默认值
+       * @param defaultRemaxOptions: remax options 默认值
+       */
+      mapRemaxOptions: (defaultRemaxOptions, inputRemaxOptions) => remaxOptions,
+    }
   }
 };
 
@@ -324,12 +333,14 @@ export default function plugin() {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 完全接管 rollupConfig 做调整
-     * remax 现有的 rollupConfig
-     * @param  rollupConfig
-     */
-    extendsRollupConfig: (rollupConfig) => rollupConfig,
+    compile: {
+      /**
+       * 完全接管 rollupConfig 做调整
+       * remax 现有的 rollupConfig
+       * @param  rollupConfig
+       */
+      extendsRollupConfig: (rollupConfig) => rollupConfig,
+    }
   }
 };
 
@@ -346,17 +357,19 @@ export default function plugin() {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 帮助开发者扩展已有 rollup 插件的参数
-     */
-    extendsRollupPlugins: () => ([
-      {
-        name: 'plugin-name',
-        options: {
-          ...
-        } || (originalOptions) => ({ ... })
-      }
-    ]),
+    compile: {
+      /**
+       * 帮助开发者扩展已有 rollup 插件的参数
+       */
+      extendsRollupPlugins: () => ([
+        {
+          name: 'plugin-name',
+          options: {
+            ...
+          } || (originalOptions) => ({ ... })
+        }
+      ]),
+    }
   }
 };
 
@@ -386,10 +399,12 @@ plugins.map(plug => {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 自定义处理 page 组件的 babel 插件
-     */
-    customBabelPluginPage: () => plugin,
+    compile: {
+      /**
+       * 自定义处理 page 组件的 babel 插件
+       */
+      customBabelPluginPage: () => plugin,
+    }
   }
 };
 
@@ -403,10 +418,12 @@ export default function plugin() {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 自定义处理 app 组件的 babel 插件
-     */
-    customBabelPluginApp: () => plugin,
+    compile: {
+      /**
+       * 自定义处理 app 组件的 babel 插件
+       */
+      customBabelPluginApp: () => plugin,
+    }
   }
 };
 
@@ -420,10 +437,12 @@ export default function plugin() {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 自定义处理 原生组件的 babel 插件
-     */
-    customBabelPluginNativeComponent: () => plugin,
+    compile: {
+      /**
+       * 自定义处理 原生组件的 babel 插件
+       */
+      customBabelPluginNativeComponent: () => plugin,
+    }
   }
 };
 
@@ -437,10 +456,12 @@ export default function plugin() {
 // plugin.ts
 export default function plugin() {
   return {
-    /**
-     * 自定义收集 jsx 标签的 babel 插件
-     */
-    customBabelPluginJSXTag: () => plugin,
+    compile: {
+      /**
+       * 自定义收集 jsx 标签的 babel 插件
+       */
+      customBabelPluginJSXTag: () => plugin,
+    }
   }
 };
 
@@ -454,10 +475,12 @@ export default function plugin() {
 // plugin.ts
 export default function plugin() {
   return {
-    extensions: {
-      template: 'axml',
-      style: 'axss',
-      jsHelper: 'sjs',
+    compile: {
+      extensions: {
+        template: 'axml',
+        style: 'axss',
+        jsHelper: 'sjs',
+      }
     }
   }
 };
