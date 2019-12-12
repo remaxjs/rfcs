@@ -618,6 +618,50 @@ processProps(newProps, ...options) {
 
 ```
 
+## 扩展 Synthetic Event 3.1.2.1
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    runtime: {
+      /**
+       * 扩展 synthetic 事件池
+       */
+      extendsSyntheticPool: (pool) => pool,
+      /**
+       * 扩展 synthetic 事件
+       */
+      extendsSyntheticEvent: (event) => event;
+    }
+  }
+}
+```
+
+## 扩展 Container 3.1.1.3.2
+
+开发者
+
+```ts
+// plugin.ts
+export default function plugin() {
+  return {
+    runtime: {
+      /**
+       * 创建 update action
+       */
+      createContainerUpdateAction: (container) => action,
+      /**
+       * 已停止更新 hook
+       */
+      containerDidStopUpdate: (container) => void;
+    }
+  }
+}
+```
+
 # 缺点
 
 代码冗余会有一定程度上升，维护多平台的成本上升。
