@@ -218,23 +218,31 @@ Remax 的编译时与运行时流程图如下：
 开发者
 
 ```ts
-export default function alipayPlgin() {
+// plugin/node.js
+export default function alipayNodePlgin() {
   return {
     ...
-  }: RemaxPluginConfig
+  }: RemaxNodePluginConfig
+});
+
+// plugin/runtime.js
+export default function alipayRuntimePlgin() {
+  return {
+    ...
+  }: RemaxNodePluginConfig
 });
 ```
 
 ## 使用 Remax 插件
 
- 用户
+用户
 
 ```ts
 // remax.config.ts
 export default {
   plugins: [
-    'remax-plugin-alipay', // 自动查找 npm 包 remax-plugin-alipay
-    'aliay', // 自动查找 npm 包 remax-plugin-alipay
+    'remax-plugin-alipay', // 编译时自动查找 npm 包 remax-plugin-alipay/node.js, 运行时自动插找 remax-plugin-alipay/runtime.js
+    'aliay', // 自动映射成 remax-plugin-alipay
     ...
   ],
 }
@@ -248,7 +256,7 @@ export { usePlugin };
 
 // 读取 remax.config.js，将插件引入
 plugins.forEach(plug => {
-  usePlugin(plug)
+  usePlugin(plug);
 });
 ```
 
@@ -257,7 +265,14 @@ plugins.forEach(plug => {
 ```ts
 // 首先我们要有一个 PluginContext 供创建 Plugin 的全过程可以访问到需要的东西
 // 所有 Plugin hook 都可以通过 this.context 拿到 PluginContext
-interface RemaxPluginContext {
+
+// 运行时相关
+interface RemaxRuntimePluginContext {
+  ...
+}
+
+// 编译时相关
+interface RemaxNodePluginContext {
   ...
 }
 ```
@@ -266,33 +281,33 @@ interface RemaxPluginContext {
 
 ```ts
 // 定义实现 plugin 要实现的 options, hooks
-interface RemaxPluginConfig {
-  runtime: {
+
+// 运行时相关
+interface RemaxRuntimePluginConfig {
     ...
-  },
-  compile: {
+}
+
+// 编译时相关
+interface RemaxRuntimePluginConfig {
     ...
-  }
 }
 ```
 
-## 扩展 CLI命令 - 编译时 1.
+## 扩展 CLI 命令 - 编译时 1.
 
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 将 yargs 对象传入，返回扩展后的 yargs 对象
-       * @param  yargs
-       */
-      extendsCLI: (cli) => cli,
-    }
-  }
-};
+    /**
+     * 将 yargs 对象传入，返回扩展后的 yargs 对象
+     * @param  yargs
+     */
+    extendsCLI: cli => cli
+  };
+}
 
 // 同时 this.context.cliOptions 可以访问到用户输入的 CLI 参数
 ```
@@ -302,29 +317,27 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 扩展 remaxOptionsSchema 定义
-       */
-      extendsRemaxOptionsSchema: (remaxOptionsSchema) => remaxOptionsSchema,
+    /**
+     * 扩展 remaxOptionsSchema 定义
+     */
+    extendsRemaxOptionsSchema: remaxOptionsSchema => remaxOptionsSchema,
 
-      /**
-       * 自定义 remaxOptions
-       * @param defaultRemaxOptions: remax options 默认值
-       * @param defaultRemaxOptions: remax options 默认值
-       */
-      mapRemaxOptions: (defaultRemaxOptions, inputRemaxOptions) => remaxOptions,
-    }
-  }
-};
+    /**
+     * 自定义 remaxOptions
+     * @param defaultRemaxOptions: remax options 默认值
+     * @param defaultRemaxOptions: remax options 默认值
+     */
+    mapRemaxOptions: (defaultRemaxOptions, inputRemaxOptions) => remaxOptions
+  };
+}
 
 // 同时 this.context.remaxOptions 可以访问到最终的 remax options 参数
 ```
 
-*结合 CLI 和 RemaxOptions 的扩展能力，开发者可以自动把用户选择的平台对应的 plugin 引入到 remax.config.js 中，这样用户可以无感知地使用 remax-plugin-${plaform}，无需手动引入*
+_结合 CLI 和 RemaxOptions 的扩展能力，开发者可以自动把用户选择的平台对应的 plugin 引入到 remax.config.js 中，这样用户可以无感知地使用 remax-plugin-\${plaform}，无需手动引入_
 
 ## 废弃 <引入 Adapter 代码 编译时 3.>
 
@@ -333,41 +346,37 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 完全接管 rollupConfig 做调整
-       * remax 现有的 rollupConfig
-       * @param  rollupConfig
-       */
-      extendsRollupConfig: (rollupConfig) => rollupConfig,
-    }
-  }
-};
+    /**
+     * 完全接管 rollupConfig 做调整
+     * remax 现有的 rollupConfig
+     * @param  rollupConfig
+     */
+    extendsRollupConfig: rollupConfig => rollupConfig
+  };
+}
 
 // 同时 this.context.rollupConfig 可以访问到最终的 rollupConfig
 ```
 
-*通过扩展 RollupConfig，开发者可以自定义 rollup 行为*
+_通过扩展 RollupConfig，开发者可以自定义 rollup 行为_
 
 ## 自定义 Entry 文件. 编译时 4.0
 
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 自定义 entry 文件
-       */
-      getEntreis: () => any,
-    }
-  }
-};
+    /**
+     * 自定义 entry 文件
+     */
+    getEntreis: () => any
+  };
+}
 ```
 
 ## 扩展 Rollup Plugin. 编译时 4.1
@@ -375,22 +384,20 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 帮助开发者扩展已有 rollup 插件的参数
-       */
-      extendsRollupPlugins: () => ([
-        {
-          name: 'plugin-name',
-          options: {
-            ...
-          } || (originalOptions) => ({ ... })
-        }
-      ]),
-    }
+    /**
+      * 帮助开发者扩展已有 rollup 插件的参数
+      */
+    extendsRollupPlugins: () => ([
+      {
+        name: 'plugin-name',
+        options: {
+          ...
+        } || (originalOptions) => ({ ... })
+      }
+    ]),
   }
 };
 
@@ -402,13 +409,13 @@ Remax
 ```ts
 // rollupConfig.ts
 plugins.map(plug => {
-  const customOptions = remaxPlugin.extendsRollupPlugins.findByName(plug.name).options;
+  const customOptions = remaxPlugin.extendsRollupPlugins.findByName(plug.name)
+    .options;
   return plug(customOptions || originalOptions);
-}) 
+});
 ```
 
-*通过扩展 RollupConfig，开发者可以自定义 rollup 行为*
-
+_通过扩展 RollupConfig，开发者可以自定义 rollup 行为_
 
 ## 废弃 <babel-plugin-stub 编译时 4.1.7>
 
@@ -417,18 +424,15 @@ plugins.map(plug => {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 自定义处理 page 组件的 babel 插件
-       */
-      customBabelPluginPage: () => plugin,
-    }
-  }
-};
-
+    /**
+     * 自定义处理 page 组件的 babel 插件
+     */
+    customBabelPluginPage: () => plugin
+  };
+}
 ```
 
 ## 自定义处理 app 页面行为 编译时 4.1.9
@@ -436,18 +440,15 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 自定义处理 app 组件的 babel 插件
-       */
-      customBabelPluginApp: () => plugin,
-    }
-  }
-};
-
+    /**
+     * 自定义处理 app 组件的 babel 插件
+     */
+    customBabelPluginApp: () => plugin
+  };
+}
 ```
 
 ## 自定义收集 native 组件行为 编译时 [4.1.8, 4.1.9, 4.1.10]
@@ -455,37 +456,31 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 自定义处理 原生组件的 babel 插件
-       */
-      customBabelPluginNativeComponent: () => plugin,
-    }
-  }
-};
-
+    /**
+     * 自定义处理 原生组件的 babel 插件
+     */
+    customBabelPluginNativeComponent: () => plugin
+  };
+}
 ```
 
-## 自定义收集JSX标签的行为 编译时 4.1.10
+## 自定义收集 JSX 标签的行为 编译时 4.1.10
 
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      /**
-       * 自定义收集 jsx 标签的 babel 插件
-       */
-      customBabelPluginJSXTag: () => plugin,
-    }
-  }
-};
-
+    /**
+     * 自定义收集 jsx 标签的 babel 插件
+     */
+    customBabelPluginJSXTag: () => plugin
+  };
+}
 ```
 
 ## 配置原生文件扩展名 编译时 4.1.14
@@ -493,19 +488,16 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/node.ts
 export default function plugin() {
   return {
-    compile: {
-      extensions: {
-        template: 'axml',
-        style: 'axss',
-        jsHelper: 'sjs',
-      }
+    extensions: {
+      template: 'axml',
+      style: 'axss',
+      jsHelper: 'sjs'
     }
-  }
-};
-
+  };
+}
 ```
 
 ## 注册 App 生命周期 运行时 1.1
@@ -513,15 +505,13 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/runtime.ts
 export default function plugin() {
   return {
-    runtime: {
-      /**
-       * 注册生命周期
-       */
-      registerAppLifeCycle: (options) => any;
-    }
+    /**
+      * 注册生命周期
+      */
+    registerAppLifeCycle: (options) => any;
   }
 }
 ```
@@ -531,15 +521,13 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/runtime.ts
 export default function plugin() {
   return {
-    runtime: {
-      /**
-       * 注册 App 生命周期
-       */
-      registerAppLifeCycle: (options) => any;
-    }
+    /**
+      * 注册 App 生命周期
+      */
+    registerAppLifeCycle: (options) => any;
   }
 }
 ```
@@ -549,15 +537,13 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/runtime.ts
 export default function plugin() {
   return {
-    runtime: {
-      /**
-       * 注册 Page 生命周期
-       */
-      registerPageLifeCycle: (options) => any;
-    }
+    /**
+      * 注册 Page 生命周期
+      */
+    registerPageLifeCycle: (options) => any;
   }
 }
 ```
@@ -567,15 +553,13 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/runtime.ts
 export default function plugin() {
   return {
-    runtime: {
-      /**
-       * 扩展虚拟 dom 类
-       */
-      extendsVNode: (VNode) => VNode;
-    }
+    /**
+      * 扩展虚拟 dom 类
+      */
+    extendsVNode: (VNode) => VNode;
   }
 }
 ```
@@ -585,19 +569,17 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/runtime.ts
 export default function plugin() {
   return {
-    runtime: {
-      /**
-       * hostConfig 处理 props before hook
-       */
-      beforeHostConfigProcessingProps: (...propsOptions) => props,
-      /**
-       * hostConfig 处理 props after hook
-       */
-      afterHostConfigProcessingProps: (...propsOptions) => props;
-    }
+    /**
+      * hostConfig 处理 props before hook
+      */
+    beforeHostConfigProcessingProps: (...propsOptions) => props,
+    /**
+      * hostConfig 处理 props after hook
+      */
+    afterHostConfigProcessingProps: (...propsOptions) => props;
   }
 }
 ```
@@ -623,19 +605,17 @@ processProps(newProps, ...options) {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/runtime.ts
 export default function plugin() {
   return {
-    runtime: {
-      /**
-       * 扩展 synthetic 事件池
-       */
-      extendsSyntheticPool: (pool) => pool,
-      /**
-       * 扩展 synthetic 事件
-       */
-      extendsSyntheticEvent: (event) => event;
-    }
+    /**
+      * 扩展 synthetic 事件池
+      */
+    extendsSyntheticPool: (pool) => pool,
+    /**
+      * 扩展 synthetic 事件
+      */
+    extendsSyntheticEvent: (event) => event;
   }
 }
 ```
@@ -645,19 +625,17 @@ export default function plugin() {
 开发者
 
 ```ts
-// plugin.ts
+// plugin/runtime.ts
 export default function plugin() {
   return {
-    runtime: {
-      /**
-       * 创建 update action
-       */
-      createContainerUpdateAction: (container) => action,
-      /**
-       * 已停止更新 hook
-       */
-      containerDidStopUpdate: (container) => void;
-    }
+    /**
+      * 创建 update action
+      */
+    createContainerUpdateAction: (container) => action,
+    /**
+      * 已停止更新 hook
+      */
+    containerDidStopUpdate: (container) => void;
   }
 }
 ```
