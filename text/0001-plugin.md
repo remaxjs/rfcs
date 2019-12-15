@@ -243,37 +243,9 @@ export default {
   plugins: [
     'remax-plugin-alipay', // 编译时自动查找 npm 包 remax-plugin-alipay/node.js, 运行时自动插找 remax-plugin-alipay/runtime.js
     'aliay', // 自动映射成 remax-plugin-alipay
+    ['alipay', { ... }], // 支持给插件传递参数
     ...
   ],
-}
-```
-
-Remax
-
-```ts
-// remax-cli
-export { usePlugin };
-
-// 读取 remax.config.js，将插件引入
-plugins.forEach(plug => {
-  usePlugin(plug);
-});
-```
-
-## PluginContext
-
-```ts
-// 首先我们要有一个 PluginContext 供创建 Plugin 的全过程可以访问到需要的东西
-// 所有 Plugin hook 都可以通过 this.context 拿到 PluginContext
-
-// 运行时相关
-interface RemaxRuntimePluginContext {
-  ...
-}
-
-// 编译时相关
-interface RemaxNodePluginContext {
-  ...
 }
 ```
 
@@ -299,7 +271,7 @@ interface RemaxRuntimePluginConfig {
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
      * 将 yargs 对象传入，返回扩展后的 yargs 对象
@@ -308,8 +280,6 @@ export default function plugin() {
     extendsCLI: cli => cli
   };
 }
-
-// 同时 this.context.cliOptions 可以访问到用户输入的 CLI 参数
 ```
 
 ## 扩展 RemaxOptions - 编译时 2.
@@ -318,28 +288,18 @@ export default function plugin() {
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
-    /**
-     * 扩展 remaxOptionsSchema 定义
-     */
-    extendsRemaxOptionsSchema: remaxOptionsSchema => remaxOptionsSchema,
-
     /**
      * 自定义 remaxOptions
      * @param defaultRemaxOptions: remax options 默认值
      * @param defaultRemaxOptions: remax options 默认值
      */
-    mapRemaxOptions: (defaultRemaxOptions, inputRemaxOptions) => remaxOptions
+    mapRemaxOptions: ({ defaultRemaxOptions, inputRemaxOptions }) =>
+      remaxOptions
   };
 }
-
-// 同时 this.context.remaxOptions 可以访问到最终的 remax options 参数
 ```
-
-_结合 CLI 和 RemaxOptions 的扩展能力，开发者可以自动把用户选择的平台对应的 plugin 引入到 remax.config.js 中，这样用户可以无感知地使用 remax-plugin-\${plaform}，无需手动引入_
-
-## 废弃 <引入 Adapter 代码 编译时 3.>
 
 ## 扩展 RollupConfig 编译时 4.
 
@@ -347,18 +307,16 @@ _结合 CLI 和 RemaxOptions 的扩展能力，开发者可以自动把用户选
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
      * 完全接管 rollupConfig 做调整
      * remax 现有的 rollupConfig
      * @param  rollupConfig
      */
-    extendsRollupConfig: rollupConfig => rollupConfig
+    extendsRollupConfig: {{ rollupConfig }) => rollupConfig
   };
 }
-
-// 同时 this.context.rollupConfig 可以访问到最终的 rollupConfig
 ```
 
 _通过扩展 RollupConfig，开发者可以自定义 rollup 行为_
@@ -369,7 +327,7 @@ _通过扩展 RollupConfig，开发者可以自定义 rollup 行为_
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
      * 自定义 entry 文件
@@ -385,7 +343,7 @@ export default function plugin() {
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
       * 帮助开发者扩展已有 rollup 插件的参数
@@ -400,24 +358,9 @@ export default function plugin() {
     ]),
   }
 };
-
-// 同时 this.context.rollupConfig 可以访问到最终的 rollupConfig
-```
-
-Remax
-
-```ts
-// rollupConfig.ts
-plugins.map(plug => {
-  const customOptions = remaxPlugin.extendsRollupPlugins.findByName(plug.name)
-    .options;
-  return plug(customOptions || originalOptions);
-});
 ```
 
 _通过扩展 RollupConfig，开发者可以自定义 rollup 行为_
-
-## 废弃 <babel-plugin-stub 编译时 4.1.7>
 
 ## 自定义处理 page 页面行为 编译时 4.1.8
 
@@ -425,7 +368,7 @@ _通过扩展 RollupConfig，开发者可以自定义 rollup 行为_
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
      * 自定义处理 page 组件的 babel 插件
@@ -441,7 +384,7 @@ export default function plugin() {
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
      * 自定义处理 app 组件的 babel 插件
@@ -457,7 +400,7 @@ export default function plugin() {
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
      * 自定义处理 原生组件的 babel 插件
@@ -473,7 +416,7 @@ export default function plugin() {
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
      * 自定义收集 jsx 标签的 babel 插件
@@ -489,7 +432,7 @@ export default function plugin() {
 
 ```ts
 // plugin/node.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     extensions: {
       template: 'axml',
@@ -506,7 +449,7 @@ export default function plugin() {
 
 ```ts
 // plugin/runtime.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
       * 注册生命周期
@@ -522,7 +465,7 @@ export default function plugin() {
 
 ```ts
 // plugin/runtime.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
       * 注册 App 生命周期
@@ -538,7 +481,7 @@ export default function plugin() {
 
 ```ts
 // plugin/runtime.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
       * 注册 Page 生命周期
@@ -554,7 +497,7 @@ export default function plugin() {
 
 ```ts
 // plugin/runtime.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
       * 扩展虚拟 dom 类
@@ -570,34 +513,14 @@ export default function plugin() {
 
 ```ts
 // plugin/runtime.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
-      * hostConfig 处理 props before hook
+      * hostConfig 处理 props
       */
-    beforeHostConfigProcessingProps: (...propsOptions) => props,
-    /**
-      * hostConfig 处理 props after hook
-      */
-    afterHostConfigProcessingProps: (...propsOptions) => props;
+    onHostConfigProcessingProps: (propsOptions) => props;
   }
 }
-```
-
-remax
-
-```ts
-// hostConfig.ts
-...
-
-processProps(newProps, ...options) {
-  const props = beforeHostConfigProcessingProps(newProps, ...options);
-  ...
-  return afterHostConfigProcessingProps(props, ...options);
-}
-
-...
-
 ```
 
 ## 扩展 Synthetic Event 3.1.2.1
@@ -606,16 +529,16 @@ processProps(newProps, ...options) {
 
 ```ts
 // plugin/runtime.ts
-export default function plugin() {
+export default function plugin(options) {
   return {
     /**
       * 扩展 synthetic 事件池
       */
-    extendsSyntheticPool: (pool) => pool,
+    extendsSyntheticPool: ({ pool }) => pool,
     /**
       * 扩展 synthetic 事件
       */
-    extendsSyntheticEvent: (event) => event;
+    extendsSyntheticEvent: ({ event }) => event;
   }
 }
 ```
@@ -631,11 +554,11 @@ export default function plugin() {
     /**
       * 创建 update action
       */
-    createContainerUpdateAction: (container) => action,
+    createContainerUpdateAction: ({ container }) => action,
     /**
       * 已停止更新 hook
       */
-    containerDidStopUpdate: (container) => void;
+    containerDidStopUpdate: ({ container }) => void;
   }
 }
 ```
