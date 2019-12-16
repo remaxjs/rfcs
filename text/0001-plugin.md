@@ -219,14 +219,20 @@ Remax 的编译时与运行时流程图如下：
 
 ```ts
 // plugin/node.js
-export default function alipayNodePlgin() {
+/**
+  * @param options 插件参数
+  */
+export default function alipayNodePlugin(options) {
   return {
     ...
   }: RemaxNodePluginConfig
 });
 
 // plugin/runtime.js
-export default function alipayRuntimePlgin() {
+/**
+  * @param options 插件参数
+  */
+export default function alipayRuntimePlugin(options) {
   return {
     ...
   }: RemaxNodePluginConfig
@@ -282,25 +288,6 @@ export default function plugin(options) {
 }
 ```
 
-## 扩展 RemaxOptions - 编译时 2.
-
-开发者
-
-```ts
-// plugin/node.ts
-export default function plugin(options) {
-  return {
-    /**
-     * 自定义 remaxOptions
-     * @param defaultRemaxOptions: remax options 默认值
-     * @param defaultRemaxOptions: remax options 默认值
-     */
-    mapRemaxOptions: ({ defaultRemaxOptions, inputRemaxOptions }) =>
-      remaxOptions
-  };
-}
-```
-
 ## 扩展 RollupConfig 编译时 4.
 
 开发者
@@ -337,31 +324,6 @@ export default function plugin(options) {
 }
 ```
 
-## 扩展 Rollup Plugin. 编译时 4.1
-
-开发者
-
-```ts
-// plugin/node.ts
-export default function plugin(options) {
-  return {
-    /**
-      * 帮助开发者扩展已有 rollup 插件的参数
-      */
-    extendsRollupPlugins: () => ([
-      {
-        name: 'plugin-name',
-        options: {
-          ...
-        } || (originalOptions) => ({ ... })
-      }
-    ]),
-  }
-};
-```
-
-_通过扩展 RollupConfig，开发者可以自定义 rollup 行为_
-
 ## 自定义处理 page 页面行为 编译时 4.1.8
 
 开发者
@@ -373,7 +335,7 @@ export default function plugin(options) {
     /**
      * 自定义处理 page 组件的 babel 插件
      */
-    customBabelPluginPage: () => plugin
+    transformPage: () => plugin
   };
 }
 ```
@@ -389,7 +351,7 @@ export default function plugin(options) {
     /**
      * 自定义处理 app 组件的 babel 插件
      */
-    customBabelPluginApp: () => plugin
+    transformApp: () => plugin
   };
 }
 ```
@@ -405,7 +367,7 @@ export default function plugin(options) {
     /**
      * 自定义处理 原生组件的 babel 插件
      */
-    customBabelPluginNativeComponent: () => plugin
+    transformNativeComponent: () => plugin
   };
 }
 ```
@@ -421,7 +383,7 @@ export default function plugin(options) {
     /**
      * 自定义收集 jsx 标签的 babel 插件
      */
-    customBabelPluginJSXTag: () => plugin
+    processJSX: () => plugin
   };
 }
 ```
@@ -443,7 +405,7 @@ export default function plugin(options) {
 }
 ```
 
-## 注册 App 生命周期 运行时 1.1
+## 注册 App 生命周期 运行时 1.
 
 开发者
 
@@ -452,25 +414,9 @@ export default function plugin(options) {
 export default function plugin(options) {
   return {
     /**
-      * 注册生命周期
+      * 创建 App 对象
       */
-    registerAppLifeCycle: (options) => any;
-  }
-}
-```
-
-## 注册 App 生命周期 运行时 1.1.
-
-开发者
-
-```ts
-// plugin/runtime.ts
-export default function plugin(options) {
-  return {
-    /**
-      * 注册 App 生命周期
-      */
-    registerAppLifeCycle: (options) => any;
+    onAppConfig: (appConfig) => appConfig;
   }
 }
 ```
@@ -484,41 +430,9 @@ export default function plugin(options) {
 export default function plugin(options) {
   return {
     /**
-      * 注册 Page 生命周期
+      * 创建 Page 对象
       */
-    registerPageLifeCycle: (options) => any;
-  }
-}
-```
-
-## 扩展 VNode 运行时 3.
-
-开发者
-
-```ts
-// plugin/runtime.ts
-export default function plugin(options) {
-  return {
-    /**
-      * 扩展虚拟 dom 类
-      */
-    extendsVNode: (VNode) => VNode;
-  }
-}
-```
-
-## 处理 props 运行时 3.1.2
-
-开发者
-
-```ts
-// plugin/runtime.ts
-export default function plugin(options) {
-  return {
-    /**
-      * hostConfig 处理 props
-      */
-    onHostConfigProcessingProps: (propsOptions) => props;
+    onPageConfig: (pageConfig) => pageConfig;
   }
 }
 ```
@@ -554,11 +468,11 @@ export default function plugin() {
     /**
       * 创建 update action
       */
-    createContainerUpdateAction: ({ container }) => action,
+    onUpdateAction: ({ container }) => action,
     /**
       * 已停止更新 hook
       */
-    containerDidStopUpdate: ({ container }) => void;
+    onUnload: ({ container }) => void;
   }
 }
 ```
